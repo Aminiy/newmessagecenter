@@ -12,10 +12,7 @@ import org.springframework.data.cassandra.core.query.Query;
 import com.allstar.nmsc.scylla.connector.ScyllaConnector;
 import com.allstar.nmsc.scylla.repository.MessageEntity;
 import com.datastax.driver.core.Row;
-//import com.datastax.driver.core.Row;
 import com.datastax.driver.core.exceptions.DriverException;
-import com.datastax.driver.core.querybuilder.QueryBuilder;
-import com.datastax.driver.core.querybuilder.Select;
 
 /**
  * Scylla DB Operations for Message
@@ -119,7 +116,7 @@ public class MessageDao {
 		op.insert(msg);
 	}
 	
-	public MessageEntity test(String sessionKey)
+	public MessageEntity findMessageBySessionKey(String sessionKey)
 	{
 		System.out.println("test method is called.");
 		CassandraOperations op = ScyllaConnector.instance().getTemplate();
@@ -129,9 +126,9 @@ public class MessageDao {
 //		}
 
 		// test max
-		Select select = QueryBuilder.select().max("msg_index").from("rcs_message");// where...
-		Long count = op.getCqlOperations().queryForObject(select, Long.class);
-		System.out.println("----->>Count=" + count);
+//		Select select = QueryBuilder.select().max("msg_index").from("rcs_message");// where...
+//		Long count = op.getCqlOperations().queryForObject(select, Long.class);
+//		System.out.println("----->>Count=" + count);
 		
 		// spring count method
 //		Select select = QueryBuilder.select().countAll().from("");
@@ -153,16 +150,17 @@ public class MessageDao {
 //			}
 //		});
 		RowMapper<Long> mapper  = new RowMapper<Long>() {
-
 			@Override
 			public Long mapRow(Row row, int rowNum) throws DriverException {
-				return null;
+				return row.getLong(0);
 			}
 		};
-		List <Long>list = op.getCqlOperations().query("", mapper);
-		if(list.size()>0)
+		List <Long>list = op.getCqlOperations().query("SELECT MAX(msg_index) FROM rcs_message WHERE session_key ='" + sessionKey+"'", mapper);
+		
+		if(list!=null && list.size() > 0)
 			return list.get(0);
-		return 0L;
+		else
+			return 0L;
 	}
 
 }
