@@ -5,11 +5,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.cassandra.core.CassandraOperations;
+import org.springframework.data.cassandra.core.cql.RowMapper;
 import org.springframework.data.cassandra.core.query.Criteria;
 import org.springframework.data.cassandra.core.query.Query;
 
 import com.allstar.nmsc.scylla.connector.ScyllaConnector;
 import com.allstar.nmsc.scylla.repository.MessageEntity;
+import com.datastax.driver.core.Row;
+//import com.datastax.driver.core.Row;
+import com.datastax.driver.core.exceptions.DriverException;
+import com.datastax.driver.core.querybuilder.QueryBuilder;
+import com.datastax.driver.core.querybuilder.Select;
 
 /**
  * Scylla DB Operations for Message
@@ -20,6 +26,7 @@ import com.allstar.nmsc.scylla.repository.MessageEntity;
  */
 public class MessageDao {
 
+	@org.springframework.data.cassandra.repository.Query("SELECT MAX(msg_index) FROM rcs_message WHERE session_key=?")
 	public void delSingleMessage(long operator_id, String session_key, long msg_index) {
 		CassandraOperations op = ScyllaConnector.instance().getTemplate();
 
@@ -120,7 +127,42 @@ public class MessageDao {
 //		if(list!=null){
 //			System.out.println(list.size());
 //		}
+
+		// test max
+		Select select = QueryBuilder.select().max("msg_index").from("rcs_message");// where...
+		Long count = op.getCqlOperations().queryForObject(select, Long.class);
+		System.out.println("----->>Count=" + count);
+		
+		// spring count method
+//		Select select = QueryBuilder.select().countAll().from("");
+//		Long count = getCqlOperations().queryForObject(select, Long.class);
+//		return getCqlOperations().queryForResultSet(select).iterator().hasNext();
 		
 		return op.selectOne(Query.query(Criteria.where("session_key").is(sessionKey)), MessageEntity.class);
 	}
+
+	public Long getMaxIndex(String sessionKey)
+	{
+		CassandraOperations op = ScyllaConnector.instance().getTemplate();
+//		op.getCqlOperations().query("", new RowCallbackHandler() {
+//			
+//			@Override
+//			public void processRow(Row row) throws DriverException {
+//				// TODO Auto-generated method stub
+//				
+//			}
+//		});
+		RowMapper<Long> mapper  = new RowMapper<Long>() {
+
+			@Override
+			public Long mapRow(Row row, int rowNum) throws DriverException {
+				return null;
+			}
+		};
+		List <Long>list = op.getCqlOperations().query("", mapper);
+		if(list.size()>0)
+			return list.get(0);
+		return 0L;
+	}
+
 }

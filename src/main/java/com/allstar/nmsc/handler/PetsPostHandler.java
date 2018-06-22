@@ -9,6 +9,5 @@ public class PetsPostHandler implements HttpHandler {
     public void handleRequest(HttpServerExchange exchange) throws Exception {
         
             exchange.endExchange();
-        
     }
 }

@@ -11,6 +11,9 @@ public class MessageSessionUpdateHandler implements HttpHandler {
 	public void handleRequest(HttpServerExchange exchange) throws Exception {
 
 		exchange.getResponseHeaders().add(new HttpString("Content-Type"), "application/json");
+		
+		System.out.println("----->>delete message." );
+		
 		exchange.getResponseSender()
 				.send("[{\"id\":1,\"name\":\"catten\",\"tag\":\"cat\"},{\"id\":2,\"name\":\"doggy\",\"tag\":\"dog\"}]");
 

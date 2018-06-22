@@ -1,5 +1,6 @@
-
 package com.allstar.nmsc.handler;
+
+import com.alibaba.fastjson.JSONObject;
 
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
@@ -11,8 +12,15 @@ public class MessageInsertHandler implements HttpHandler {
 	public void handleRequest(HttpServerExchange exchange) throws Exception {
 
 		exchange.getResponseHeaders().add(new HttpString("Content-Type"), "application/json");
-		exchange.getResponseSender()
-				.send("[{\"id\":1,\"name\":\"catten\",\"tag\":\"cat\"},{\"id\":2,\"name\":\"doggy\",\"tag\":\"dog\"}]");
+		
+		
+		
+		//
+		JSONObject response = new JSONObject();
+		response.put("msg", "OK");
+		response.put("code", 1);
+		
+		exchange.getResponseSender().send(response.toJSONString());
 
 	}
 }
