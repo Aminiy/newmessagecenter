@@ -11,6 +11,8 @@ import io.undertow.util.HeaderMap;
 import io.undertow.util.HttpString;
 
 import com.alibaba.fastjson.JSONObject;
+import com.allstar.nmsc.model.Response;
+import com.allstar.nmsc.model.ResponseCode;
 import com.allstar.nmsc.scylla.dao.MessageDao;
 import com.allstar.nmsc.scylla.repository.MessageEntity;
 
@@ -51,11 +53,20 @@ public class MessageGetHandler implements HttpHandler {
 		} catch (Exception e) {
 			e.printStackTrace();
 			
-			JSONObject response = new JSONObject();
-			response.put("respcode", 2);
-			response.put("msg", e.getMessage());
+//			JSONObject response = new JSONObject();
+//			response.put("respcode", 2);
+//			response.put("msg", e.getMessage());
 
-			exchange.getResponseSender().send(response.toJSONString());
+			
+			try {
+				Response res = new Response(ResponseCode.OK);
+				res.put("abc", "vin.");
+				
+				exchange.getResponseSender().send(res.toString());
+				
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
 		}
 	}
 }

@@ -2,12 +2,15 @@ package com.allstar.nmsc.model;
 
 public enum ResponseCode {
 
-	OK("ok", 1), ERROR("error", 2), NotExist("not exist",3), EXCEPTION("Exception", 4);
+	OK("ok", 1), ERROR("error", 2), NotExists("not exists",3), Exception("exception", 4);
 	
 	private int index; 
 	private String name; 
 	
-	private ResponseCode(String name, int code){}
+	private ResponseCode(String name, int code){
+		this.index = code;
+		this.name = name;
+	}
 
 	//getter setter
 	public int getIndex() {
