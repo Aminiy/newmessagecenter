@@ -1,18 +1,19 @@
 package com.allstar.nmsc.handler;
 
-import java.nio.ByteBuffer;
+import io.undertow.server.HttpHandler;
+import io.undertow.server.HttpServerExchange;
+import io.undertow.util.HeaderMap;
+import io.undertow.util.HttpString;
+
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.util.Assert;
 
 import com.alibaba.fastjson.JSONObject;
 import com.allstar.nmsc.scylla.dao.MessageDao;
 import com.allstar.nmsc.scylla.repository.MessageEntity;
-
-import io.undertow.server.HttpHandler;
-import io.undertow.server.HttpServerExchange;
-import io.undertow.util.HeaderMap;
-import io.undertow.util.HttpString;
 
 public class MessageInsertHandler implements HttpHandler {
 
@@ -47,19 +48,24 @@ public class MessageInsertHandler implements HttpHandler {
 			long messIndex = maxIndex + 1;
 			System.out.println("----->>MaxIndex from DB is:" + maxIndex);
 			
+			Map<String, String> map_ext = new HashMap<String, String>();
+			map_ext.put("name", "vincent.ma");
+			map_ext.put("age", "30");
+			map_ext.put("like", "nice girl");
+			
 			MessageEntity entity = new MessageEntity();
 			entity.setSession_key(sessionKey);
 			entity.setMessage_id(messageId);
 			entity.setMessage_index(messIndex);
 			entity.setMessage_status(0);
-			entity.setMessage_content(ByteBuffer.wrap(message.getBytes()));
+			entity.setMessage_content(message);// ByteBuffer.wrap(message.getBytes())
 			entity.setMessage_time(new Date(System.currentTimeMillis()));
 			entity.setSender_id(Long.valueOf(from));
 			entity.setReceiver_id(Long.valueOf(to));
 			entity.setGroup_sender(Long.valueOf(groupId));
 			entity.setDelflag_max(0);
 			entity.setDelflag_min(0);
-			
+			entity.setMsg_ext(map_ext);
 			new MessageDao().insertMessage(entity);
 			
 			// send response

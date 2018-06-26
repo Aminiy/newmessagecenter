@@ -1,7 +1,7 @@
 package com.allstar.nmsc.scylla.repository;
 
-import java.nio.ByteBuffer;
 import java.util.Date;
+import java.util.Map;
 
 import org.springframework.data.cassandra.core.cql.Ordering;
 import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
@@ -30,8 +30,9 @@ public class MessageEntity {
 	@Column(value = "msg_id")
 	private String message_id;
 
+	// CinMessage
 	@Column(value = "msg_content")
-	private ByteBuffer message_content;
+	private String message_content;
 
 	@Column(value = "msg_status")
 	private int message_status;
@@ -45,6 +46,10 @@ public class MessageEntity {
 	@Column(value = "delflag_max")
 	private int delflag_max;
 
+	@Column(value = "msg_ext")
+	private Map<String, String> msg_ext;
+	
+	// getter setter
 	public String getSession_key() {
 		return session_key;
 	}
@@ -93,11 +98,11 @@ public class MessageEntity {
 		this.message_id = message_id;
 	}
 
-	public ByteBuffer getMessage_content() {
+	public String getMessage_content() {
 		return message_content;
 	}
 
-	public void setMessage_content(ByteBuffer message_content) {
+	public void setMessage_content(String message_content) {
 		this.message_content = message_content;
 	}
 
@@ -133,6 +138,15 @@ public class MessageEntity {
 		this.delflag_max = delflag_max;
 	}
 
+	public Map<String, String> getMsg_ext() {
+		return msg_ext;
+	}
+
+	public void setMsg_ext(Map<String, String> msg_ext) {
+		this.msg_ext = msg_ext;
+	}
+
+	
 //	@Override
 //	public String toString() {
 //		StringBuilder sb = new StringBuilder();

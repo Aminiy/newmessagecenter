@@ -1,14 +1,12 @@
 
 package com.allstar.nmsc.handler;
 
-import java.nio.ByteBuffer;
-
-import org.springframework.util.Assert;
-
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.HeaderMap;
 import io.undertow.util.HttpString;
+
+import org.springframework.util.Assert;
 
 import com.alibaba.fastjson.JSONObject;
 import com.allstar.nmsc.model.Response;
@@ -24,11 +22,23 @@ public class MessageGetHandler implements HttpHandler {
 			exchange.getResponseHeaders().add(new HttpString("Content-Type"), "application/json");
 			// get request headers
 			HeaderMap map = exchange.getRequestHeaders();
-			String sessionKey = map.getFirst("sessionKey");
-
-			Assert.notNull(sessionKey, "sessionKey must be not null.");
+			String from = map.getFirst("from");
+			String to = map.getFirst("to");
+			String messageIndex = map.getFirst("messageIndex");
+			Assert.notNull(from, "from must be not null.");
+			Assert.notNull(to, "to must be not null.");
+			Assert.notNull(messageIndex, "messageIndex must be not null.");
 			
-			MessageEntity entity = new MessageDao().findMessageBySessionKey(sessionKey);// 100001231100001441
+			String sessionKey;
+			long fromId = Long.valueOf(from);
+			long toId = Long.valueOf(to);
+			
+			if(fromId > toId)
+				sessionKey= fromId + "" + toId;
+			else
+				sessionKey= toId + "" + fromId;
+			
+			MessageEntity entity = new MessageDao().findMessageByMsgIndex(sessionKey, Long.valueOf(messageIndex));// 100001231100001441
 			
 			JSONObject json = new JSONObject();
 			json.put("respcode", "1");
@@ -43,25 +53,19 @@ public class MessageGetHandler implements HttpHandler {
 				response.put("senderId", entity.getSender_id());
 				response.put("receiverId", entity.getReceiver_id());
 				
-				ByteBuffer buffer = entity.getMessage_content();
-				byte[] b = new byte[buffer.remaining()];
-				response.put("message", buffer.get(b, 0, b.length));
+//				ByteBuffer buffer = entity.getMessage_content();
+//				byte[] b = new byte[buffer.capacity()];
+//				buffer.get(b, 0, b.length);
+//				System.out.println("----string---" + new String (b));
+				response.put("message", entity.getMessage_content());
 			}
 			
 			json.put("response", response);
 			exchange.getResponseSender().send(json.toJSONString());
 		} catch (Exception e) {
 			e.printStackTrace();
-			
-//			JSONObject response = new JSONObject();
-//			response.put("respcode", 2);
-//			response.put("msg", e.getMessage());
-
-			
 			try {
-				Response res = new Response(ResponseCode.OK);
-				res.put("abc", "vin.");
-				
+				Response res = new Response(ResponseCode.ERROR);
 				exchange.getResponseSender().send(res.toString());
 				
 			} catch (Exception e1) {

@@ -1,6 +1,5 @@
 package com.allstar.nmsc.scylla.dao;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,12 +61,12 @@ public class MessageDao {
 		}
 	}
 
-	public void updateMessage4JioMoney(String session_key, String message_id, byte[] message_content) {
+	public void updateMessage4JioMoney(String session_key, String message_id, String message_content) {
 		CassandraOperations op = ScyllaConnector.instance().getTemplate();
 
 		MessageEntity m = findMessageByMsgId(session_key, message_id);
 		if (null != m) {
-			m.setMessage_content(ByteBuffer.wrap(message_content));
+			m.setMessage_content(message_content); // ByteBuffer.wrap(message_content)
 			op.update(m);
 		}
 	}
@@ -161,6 +160,59 @@ public class MessageDao {
 			return list.get(0);
 		else
 			return 0L;
+	}
+	
+	/**
+	 * @param sessionKey
+	 * 		session key: Auserid + Buserid
+	 * @param messageIndex
+	 * 		messageIndex: message session num
+	 * @param extMap
+	 * 		key, like {'key1':'value1','key2':'value2'}, at least one key.
+	 */
+	public void ExtMessageAppend(String sessionKey, String messageIndex, String extMap)
+	{
+		CassandraOperations op = ScyllaConnector.instance().getTemplate();
+		op.getCqlOperations().execute("UPDATE rcs_message set msg_ext = msg_ext + " + extMap +" WHERE session_key='"+ sessionKey + "' AND msg_index=" + messageIndex);
+	}
+	
+	public void ExtMessageUpdate(String sessionKey, String messageIndex, String extMap)
+	{
+		// update or clear
+		CassandraOperations op = ScyllaConnector.instance().getTemplate();
+		op.getCqlOperations().execute("UPDATE rcs_message set msg_ext = " + extMap +" WHERE session_key='"+ sessionKey + "' AND msg_index=" + messageIndex);
+	}
+	
+	/**
+	 * @param sessionKey
+	 * 		session key: Auserid + Buserid
+	 * @param messageIndex
+	 * 		messageIndex: message session num
+	 * @param extKey
+	 * 		key, like name
+	 * @param extValue
+	 * 		value, like vincent.ma
+	 */
+	public void ExtMessageUpdateOne(String sessionKey, String messageIndex, String extKey, String extValue)
+	{
+		CassandraOperations op = ScyllaConnector.instance().getTemplate();
+		op.getCqlOperations().execute("UPDATE rcs_message set msg_ext['" + extKey + "'] = '" + extValue +"' WHERE session_key='"+ sessionKey + "' AND msg_index=" + messageIndex);
+	}
+	
+	/**
+	 * @param sessionKey
+	 * 		session key: Auserid + Buserid
+	 * @param messageIndex
+	 * 		messageIndex: message session num
+	 * @param extKey
+	 * 		key, like {'key1','key2'}, at least one key.
+	 */
+	public void ExtMessageRemove(String sessionKey, String messageIndex, String extKey)
+	{
+		// DELETE favs['author'] FROM users WHERE id = 'jsmith';
+		// UPDATE users SET favs = favs - { 'movie', 'band'} WHERE id = 'jsmith';
+		CassandraOperations op = ScyllaConnector.instance().getTemplate();
+		op.getCqlOperations().execute("UPDATE rcs_message set msg_ext = msg_ext - " + extKey +" WHERE session_key='"+ sessionKey + "' AND msg_index=" + messageIndex);
 	}
 
 }
