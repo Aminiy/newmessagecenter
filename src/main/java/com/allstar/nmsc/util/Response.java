@@ -1,4 +1,4 @@
-package com.allstar.nmsc.model;
+package com.allstar.nmsc.util;
 
 import org.springframework.util.Assert;
 

@@ -3,28 +3,29 @@ package com.allstar.nmsc.handler;
 
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
-import io.undertow.util.HeaderMap;
-import io.undertow.util.HttpString;
+
+import java.util.HashMap;
 
 import org.springframework.util.Assert;
 
 import com.alibaba.fastjson.JSONObject;
-import com.allstar.nmsc.model.Response;
-import com.allstar.nmsc.model.ResponseCode;
 import com.allstar.nmsc.scylla.dao.MessageDao;
 import com.allstar.nmsc.scylla.repository.MessageEntity;
+import com.allstar.nmsc.util.Response;
+import com.allstar.nmsc.util.ResponseCode;
+import com.networknt.body.BodyHandler;
 
 public class MessageGetHandler implements HttpHandler {
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public void handleRequest(HttpServerExchange exchange) {
 		try {
-			exchange.getResponseHeaders().add(new HttpString("Content-Type"), "application/json");
-			// get request headers
-			HeaderMap map = exchange.getRequestHeaders();
-			String from = map.getFirst("from");
-			String to = map.getFirst("to");
-			String messageIndex = map.getFirst("messageIndex");
+			HashMap<String, String>  bodyMap = (HashMap<String, String>) exchange.getAttachment(BodyHandler.REQUEST_BODY);
+			String to = bodyMap.get("to");
+			String from = bodyMap.get("from");
+			String messageIndex = bodyMap.get("messageIndex");
+			
 			Assert.notNull(from, "from must be not null.");
 			Assert.notNull(to, "to must be not null.");
 			Assert.notNull(messageIndex, "messageIndex must be not null.");
@@ -40,37 +41,31 @@ public class MessageGetHandler implements HttpHandler {
 			
 			MessageEntity entity = new MessageDao().findMessageByMsgIndex(sessionKey, Long.valueOf(messageIndex));// 100001231100001441
 			
-			JSONObject json = new JSONObject();
-			json.put("respcode", "1");
-			json.put("msg", "OK");
-
-			JSONObject response = new JSONObject();
+			JSONObject resp = new JSONObject();
 			if(entity!=null){
-				response.put("sessionKey", entity.getSession_key());
-				response.put("messageId", entity.getMessage_id());
-				response.put("messageIndex", entity.getMessage_index());
-				response.put("messageStatus", entity.getMessage_status());
-				response.put("senderId", entity.getSender_id());
-				response.put("receiverId", entity.getReceiver_id());
+				resp.put("sessionKey", entity.getSession_key());
+				resp.put("messageId", entity.getMessage_id());
+				resp.put("messageIndex", entity.getMessage_index());
+				resp.put("messageStatus", entity.getMessage_status());
+				resp.put("senderId", entity.getSender_id());
+				resp.put("receiverId", entity.getReceiver_id());
 				
 //				ByteBuffer buffer = entity.getMessage_content();
 //				byte[] b = new byte[buffer.capacity()];
 //				buffer.get(b, 0, b.length);
 //				System.out.println("----string---" + new String (b));
-				response.put("message", entity.getMessage_content());
+				resp.put("message", entity.getMessage_content());
 			}
 			
-			json.put("response", response);
-			exchange.getResponseSender().send(json.toJSONString());
+			Response response = new Response(ResponseCode.OK);
+			response.put("resp", resp);
+			exchange.getResponseSender().send(response.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
-			try {
-				Response res = new Response(ResponseCode.ERROR);
-				exchange.getResponseSender().send(res.toString());
-				
-			} catch (Exception e1) {
-				e1.printStackTrace();
-			}
+			
+			Response res = new Response(ResponseCode.ERROR);
+			exchange.getResponseSender().send(res.toString());
 		}
+		exchange.endExchange();
 	}
 }

@@ -2,8 +2,6 @@ package com.allstar.nmsc.handler;
 
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
-import io.undertow.util.HeaderMap;
-import io.undertow.util.HttpString;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -14,20 +12,23 @@ import org.springframework.util.Assert;
 import com.alibaba.fastjson.JSONObject;
 import com.allstar.nmsc.scylla.dao.MessageDao;
 import com.allstar.nmsc.scylla.repository.MessageEntity;
+import com.allstar.nmsc.util.Response;
+import com.allstar.nmsc.util.ResponseCode;
+import com.networknt.body.BodyHandler;
 
 public class MessageInsertHandler implements HttpHandler {
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void handleRequest(HttpServerExchange exchange) {
 		try {
-			exchange.getResponseHeaders().add(new HttpString("Content-Type"), "application/json");
-			HeaderMap map = exchange.getRequestHeaders();
-			
-			String messageId = map.getFirst("messageId");
-			String from = map.getFirst("from");
-			String to = map.getFirst("to");
-			String groupId = map.getFirst("groupId");
-			String message = map.getFirst("message");
+			HashMap<String, String>  bodyMap = (HashMap<String, String>) exchange.getAttachment(BodyHandler.REQUEST_BODY);
+			String from = bodyMap.get("from");
+			String to = bodyMap.get("to");
+			String messageId = bodyMap.get("messageId");
+			String message = bodyMap.get("message");
+			String groupId = bodyMap.get("groupId");
+			String extMap = bodyMap.get("extMap");
 			
 			Assert.notNull(messageId, "messageId must be not null.");
 			Assert.notNull(from, "sender user Id must be not null.");
@@ -39,19 +40,20 @@ public class MessageInsertHandler implements HttpHandler {
 			long toId = Long.valueOf(to);
 			String sessionKey;
 			
-			if(fromId > toId)
-				sessionKey= fromId + "" + toId;
+			if (fromId > toId)
+				sessionKey = fromId + "" + toId;
 			else
-				sessionKey= toId + "" + fromId;
-			
+				sessionKey = toId + "" + fromId;
+
 			long maxIndex = new MessageDao().getMaxIndex(sessionKey);
 			long messIndex = maxIndex + 1;
-			System.out.println("----->>MaxIndex from DB is:" + maxIndex);
 			
 			Map<String, String> map_ext = new HashMap<String, String>();
-			map_ext.put("name", "vincent.ma");
-			map_ext.put("age", "30");
-			map_ext.put("like", "nice girl");
+			if (extMap != null && !extMap.equals("")) {
+				for (String pair : extMap.split(",")) {
+					map_ext.put(pair.split(":")[0], pair.split(":")[1]);
+				}
+			}
 			
 			MessageEntity entity = new MessageEntity();
 			entity.setSession_key(sessionKey);
@@ -60,31 +62,27 @@ public class MessageInsertHandler implements HttpHandler {
 			entity.setMessage_status(0);
 			entity.setMessage_content(message);// ByteBuffer.wrap(message.getBytes())
 			entity.setMessage_time(new Date(System.currentTimeMillis()));
-			entity.setSender_id(Long.valueOf(from));
-			entity.setReceiver_id(Long.valueOf(to));
+			entity.setSender_id(fromId);
+			entity.setReceiver_id(toId);
 			entity.setGroup_sender(Long.valueOf(groupId));
 			entity.setDelflag_max(0);
 			entity.setDelflag_min(0);
 			entity.setMsg_ext(map_ext);
 			new MessageDao().insertMessage(entity);
 			
-			// send response
 			JSONObject resp = new JSONObject();
-			JSONObject response = new JSONObject();
 			resp.put("messageIndex", messIndex);
-			response.put("respcode", 1);
-			response.put("msg", "OK");
+			
+			// send response
+			Response response = new Response(ResponseCode.OK);
 			response.put("resp", resp);
-			exchange.getResponseSender().send(response.toJSONString());
+			exchange.getResponseSender().send(resp.toString());
 		
 		} catch (Exception e) {
 			e.printStackTrace();
-			
-			JSONObject response = new JSONObject();
-			response.put("respcode", 2);
-			response.put("msg", e.getMessage());
-
-			exchange.getResponseSender().send(response.toJSONString());
+			Response resp = new Response(ResponseCode.ERROR);
+			exchange.getResponseSender().send(resp.toString());
 		}
+		exchange.endExchange();
 	}
 }

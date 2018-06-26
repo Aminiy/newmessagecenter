@@ -7,9 +7,9 @@ import java.util.HashMap;
 
 import org.springframework.util.Assert;
 
-import com.allstar.nmsc.model.Response;
-import com.allstar.nmsc.model.ResponseCode;
 import com.allstar.nmsc.scylla.dao.MessageDao;
+import com.allstar.nmsc.util.Response;
+import com.allstar.nmsc.util.ResponseCode;
 import com.networknt.body.BodyHandler;
 
 /**
@@ -29,7 +29,7 @@ public class ExtMessgeRemoveHandler implements HttpHandler{
 			String to = bodyMap.get("to");
 			String from = bodyMap.get("from");
 			
-			String extKey = bodyMap.get("extKey");// at least one key. like:key1,key2,key3
+			String extKey = bodyMap.get("extKey");// key1,key2
 			String messageIndex = bodyMap.get("messageIndex");
 			
 			Assert.notNull(from, "from must be not null.");
@@ -46,16 +46,15 @@ public class ExtMessgeRemoveHandler implements HttpHandler{
 			else
 				sessionKey= toId + "" + fromId;
 			
-			// build extend key
-			StringBuffer b = new StringBuffer("{");
-			for(String key : extKey.split(","))
-			{
-				b.append("'" + key + "',");
-			}
-			b.substring(0, b.length()-1);
-			b.append("}");
+//			StringBuffer b = new StringBuffer("{");
+//			for(String key : extKey.split(","))
+//			{
+//				b.append("'" + key + "',");
+//			}
+//			b.substring(0, b.length()-2);
+//			b.append("}");
 			
-			extKey = b.toString();
+			extKey = "{'" + extKey.replaceAll(",","','") + "'}";
 			new MessageDao().ExtMessageRemove(sessionKey, messageIndex, extKey);
 			
 			Response r = new Response(ResponseCode.OK);
@@ -67,7 +66,7 @@ public class ExtMessgeRemoveHandler implements HttpHandler{
 			Response r = new Response(ResponseCode.ERROR);
 			exchange.getResponseSender().send(r.toString());
 		}
-		
+		exchange.endExchange();
 	}
 
 }

@@ -176,7 +176,7 @@ public class MessageDao {
 		op.getCqlOperations().execute("UPDATE rcs_message set msg_ext = msg_ext + " + extMap +" WHERE session_key='"+ sessionKey + "' AND msg_index=" + messageIndex);
 	}
 	
-	public void ExtMessageUpdate(String sessionKey, String messageIndex, String extMap)
+	public void ExtMessageUpdate(String sessionKey, String messageIndex, String extMap) throws Exception
 	{
 		// update or clear
 		CassandraOperations op = ScyllaConnector.instance().getTemplate();

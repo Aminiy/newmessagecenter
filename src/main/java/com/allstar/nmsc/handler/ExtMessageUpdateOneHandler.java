@@ -4,9 +4,9 @@ import java.util.HashMap;
 
 import org.springframework.util.Assert;
 
-import com.allstar.nmsc.model.Response;
-import com.allstar.nmsc.model.ResponseCode;
 import com.allstar.nmsc.scylla.dao.MessageDao;
+import com.allstar.nmsc.util.Response;
+import com.allstar.nmsc.util.ResponseCode;
 import com.networknt.body.BodyHandler;
 
 import io.undertow.server.HttpHandler;

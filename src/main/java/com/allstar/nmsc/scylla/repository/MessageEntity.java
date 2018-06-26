@@ -25,7 +25,7 @@ public class MessageEntity {
 	private long receiver_id;
 
 	@Column(value = "group_sender")
-	private Long group_sender;
+	private long group_sender;
 
 	@Column(value = "msg_id")
 	private String message_id;
@@ -82,11 +82,11 @@ public class MessageEntity {
 		this.receiver_id = receiver_id;
 	}
 
-	public Long getGroup_sender() {
+	public long getGroup_sender() {
 		return group_sender;
 	}
 
-	public void setGroup_sender(Long group_sender) {
+	public void setGroup_sender(long group_sender) {
 		this.group_sender = group_sender;
 	}
 

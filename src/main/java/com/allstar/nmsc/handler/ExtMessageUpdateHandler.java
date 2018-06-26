@@ -1,16 +1,16 @@
 package com.allstar.nmsc.handler;
 
+import io.undertow.server.HttpHandler;
+import io.undertow.server.HttpServerExchange;
+
 import java.util.HashMap;
 
 import org.springframework.util.Assert;
 
-import com.allstar.nmsc.model.Response;
-import com.allstar.nmsc.model.ResponseCode;
 import com.allstar.nmsc.scylla.dao.MessageDao;
+import com.allstar.nmsc.util.Response;
+import com.allstar.nmsc.util.ResponseCode;
 import com.networknt.body.BodyHandler;
-
-import io.undertow.server.HttpHandler;
-import io.undertow.server.HttpServerExchange;
 
 /**
  * update msg_ext column, msg_ext = value
@@ -27,7 +27,7 @@ public class ExtMessageUpdateHandler implements HttpHandler{
 			HashMap<String, String>  bodyMap = (HashMap<String, String>) exchange.getAttachment(BodyHandler.REQUEST_BODY);
 			String to = bodyMap.get("to");
 			String from = bodyMap.get("from");
-			String extMap = bodyMap.get("extMap");// {'key1':'value1','key2':'value2'}
+			String extMap = bodyMap.get("extMap");// name:vincent.ma,age:18
 			String messageIndex = bodyMap.get("messageIndex");
 			
 			Assert.notNull(from, "from must be not null.");
@@ -44,6 +44,8 @@ public class ExtMessageUpdateHandler implements HttpHandler{
 			else
 				sessionKey= toId + "" + fromId;
 			
+			extMap = "{'" + extMap.replaceAll(",", "','").replaceAll(":", "':'") + "'}";
+			System.out.println("-----extMap---" + extMap);
 			new MessageDao().ExtMessageUpdate(sessionKey, messageIndex, extMap);
 			
 			Response resp = new Response(ResponseCode.OK);

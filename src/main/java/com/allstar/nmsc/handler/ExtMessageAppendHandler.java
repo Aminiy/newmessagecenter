@@ -7,15 +7,15 @@ import java.util.HashMap;
 
 import org.springframework.util.Assert;
 
-import com.allstar.nmsc.model.Response;
-import com.allstar.nmsc.model.ResponseCode;
 import com.allstar.nmsc.scylla.dao.MessageDao;
+import com.allstar.nmsc.util.Response;
+import com.allstar.nmsc.util.ResponseCode;
 import com.networknt.body.BodyHandler;
 
 /**
  * @author aminiy
  * 
- *         CinMessage extend property, all extend key-value save to msg_ext map.
+ *         CinMessage extend property, all extend key-value save to msg_ext column.
  *         this interface is append to msg_ext column: msg_ext = msg_ext + value(like: {'key1':'value1','key2':'vaue2'})
  */
 public class ExtMessageAppendHandler implements HttpHandler {
@@ -29,13 +29,14 @@ public class ExtMessageAppendHandler implements HttpHandler {
 			String from = bodyMap.get("from");
 			String to = bodyMap.get("to");
 			String messageIndex = bodyMap.get("messageIndex");
-			String extMap = bodyMap.get("extMap");// {'key1':'value1','key2':'value2'}
+			String extMap = bodyMap.get("extMap");// key1:value1,key2:value2
 			
 //			InputStream stream = exchange.getInputStream();
 //			String requestBody = new BufferedReader(new InputStreamReader(stream)).lines().collect(Collectors.joining("\n"));// System.lineSeparator()
 
 			Assert.notNull(from, "from must be not null.");
 			Assert.notNull(to, "to must be not null.");
+			Assert.notNull(extMap, "extMap must be not null.");
 			Assert.notNull(messageIndex, "messageIndex must be not null.");
 			
 			String sessionKey;
@@ -47,6 +48,7 @@ public class ExtMessageAppendHandler implements HttpHandler {
 			else
 				sessionKey= toId + "" + fromId;
 			
+			extMap = "{'" + extMap.replaceAll(":", "':'").replaceAll(",", "','") + "'}";
 			new MessageDao().ExtMessageAppend(sessionKey, messageIndex, extMap);
 			
 			Response resp = new Response(ResponseCode.OK);
