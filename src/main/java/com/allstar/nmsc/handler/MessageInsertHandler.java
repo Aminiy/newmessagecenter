@@ -76,7 +76,7 @@ public class MessageInsertHandler implements HttpHandler {
 			// send response
 			Response response = new Response(ResponseCode.OK);
 			response.put("resp", resp);
-			exchange.getResponseSender().send(resp.toString());
+			exchange.getResponseSender().send(response.toString());
 		
 		} catch (Exception e) {
 			e.printStackTrace();

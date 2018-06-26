@@ -18,7 +18,7 @@ import com.networknt.body.BodyHandler;
  * @author aminiy
  *
  */
-public class ExtMessgeRemoveHandler implements HttpHandler{
+public class ExtMessageRemoveHandler implements HttpHandler{
 
 	@SuppressWarnings("unchecked")
 	@Override

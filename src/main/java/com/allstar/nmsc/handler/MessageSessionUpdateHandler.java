@@ -11,6 +11,12 @@ import io.undertow.server.HttpServerExchange;
 import io.undertow.util.HeaderMap;
 import io.undertow.util.HttpString;
 
+/**
+ * update message status
+ * 
+ * @author aminiy
+ *
+ */
 public class MessageSessionUpdateHandler implements HttpHandler {
 
 	@Override
@@ -42,5 +48,6 @@ public class MessageSessionUpdateHandler implements HttpHandler {
 
 			exchange.getResponseSender().send(response.toJSONString());
 		}
+		exchange.endExchange();
 	}
 }

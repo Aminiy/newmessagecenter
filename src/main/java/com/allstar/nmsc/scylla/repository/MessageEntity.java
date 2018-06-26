@@ -110,6 +110,10 @@ public class MessageEntity {
 		return message_status;
 	}
 
+	/**
+	 * @param message_status
+	 * 		0: message has sent, 1: message has delivery
+	 */
 	public void setMessage_status(int message_status) {
 		this.message_status = message_status;
 	}

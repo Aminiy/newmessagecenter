@@ -321,7 +321,7 @@
         },
         
         "/getmessage": {
-            "get": {
+            "post": {
                 "security": [
                     {
                         "petstore_auth": [
@@ -338,10 +338,10 @@
             }
         },
         "/addmessage": {
-        	"get":{}
+        	"post":{}
         },
         "/deletemessage": {
-        	"delete":{}
+        	"post":{}
         },
         "/extmessageremove":{
         	"post":{}
